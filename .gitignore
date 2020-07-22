@@ -1,0 +1,7 @@
+/__pycache__/
+/venv/
+*.db
+/.vscode/
+/tutorial/
+Dockerfile
+/app/__pycache__/
