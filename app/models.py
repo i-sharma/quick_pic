@@ -21,7 +21,7 @@ class CustomImages:
         place = await db.fetch_one(query)
         if place:
             place = dict(place)
-            query = custom_images.update()
+            query = custom_images.update().where(custom_images.c.placeid == placeid)
             values = {'n_requests': place['n_requests'] + 1}
             await db.execute(query=query, values=values)    
         return place 
