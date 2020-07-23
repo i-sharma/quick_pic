@@ -12,6 +12,7 @@ custom_images = sqlalchemy.Table(
     Column("n_requests", BigInteger, index = True),
     Column("update_timestamp", DateTime),
     Column("photo_url", String),
+    Column("city", String)
 )    
 
 class CustomImages:
@@ -27,7 +28,7 @@ class CustomImages:
         return place 
         
     @classmethod
-    async def create(cls, **place):
+    async def create(cls, **place):       
         place['n_requests'] = 1
         place['update_timestamp'] = datetime.now()
         query = custom_images.insert().values(**place)

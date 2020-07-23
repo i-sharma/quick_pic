@@ -7,7 +7,6 @@ from .database import SQLALCHEMY_DATABASE_URL,db
 import requests
 models.Base.metadata.create_all(bind=engine)
 import os
-import json
 
 app = FastAPI()
 KEY = os.environ.get('API_KEY')
@@ -49,11 +48,11 @@ def google_api_call(placeid:str, photoref:str):
         response = requests.get(google_photos_url, allow_redirects=False)
         return response.headers.get('Location', None) 
            
-async def insert_db(placeid:str, photoref:str, n_req : int = None):
+async def insert_db(placeid:str, photoref:str, city:str = None):
     redirect_url = google_api_call(placeid, photoref)
     if redirect_url:
         new_place = await models.CustomImages.create(placeid=placeid, photoref=photoref,
-        photo_url = redirect_url, n_requests = n_req)
+        photo_url = redirect_url, city=city)
         if new_place:
             return redirect_url
         else:
@@ -76,13 +75,13 @@ async def update_db_photo_url(placeid:str, photoref:str, n_req : int = None):
         return False
 
 @app.get("/images/custom")
-async def get_custom_image_url(placeid:str = '', photoref:str = '', db: Session = Depends(get_db)):
+async def get_custom_image_url(placeid:str = '', photoref:str = '', city:str = '',db: Session = Depends(get_db)):
     if placeid == '' and photoref == '':
-        return json.dumps({
+        return {
             'status': 'INVALID_QUERY',
             'message': 'please check if the fields placeid and photoref are both empty or you may have misspelled the names of query parameters in your request' ,
             'example_correct_request': 'https://easytrips-custom-images.herokuapp.com/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>'
-        }, indent=4)
+        }
     elif placeid == '':
         return {
             'status': 'INVALID_QUERY',
@@ -104,7 +103,8 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', db: Session 
                 'placeid' : db_place['placeid'],
                 'photoref' : db_place['photoref'],
                 'image_url' : db_place['photo_url'],
-                'n_requests' : db_place['n_requests'] + 1
+                'n_requests' : db_place['n_requests'] + 1,
+                'city': db_place['city']
             }
         else :
             redirect_url = await update_db_photo_url(placeid, photoref, db_place['n_requests'])
@@ -115,7 +115,8 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', db: Session 
                     'placeid': placeid,
                     'image_url': redirect_url,
                     'n_requests' : db_place['n_requests'] + 1,
-                    'photoref' : photoref
+                    'photoref' : photoref,
+                    'city': db_place['city']
                 }
             return {
                     'status': 'FAILURE',
@@ -123,14 +124,15 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', db: Session 
                 }  
     else:
         # insert_db()
-        redirect_url = await insert_db(placeid, photoref)
+        redirect_url = await insert_db(placeid, photoref, city)
         if redirect_url:
             return {
                     'status': 'CREATED',
                     'placeid': placeid,
                     'image_url': redirect_url,
                     'n_requests' : 1,
-                    'photoref' : photoref
+                    'photoref' : photoref,
+                    'city': city
                 }
         return {
                 'status': 'FAILURE',
