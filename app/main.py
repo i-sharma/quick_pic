@@ -6,8 +6,10 @@ from .database import SessionLocal, engine
 from .database import SQLALCHEMY_DATABASE_URL,db
 import requests
 models.Base.metadata.create_all(bind=engine)
+import os
 
 app = FastAPI()
+KEY = os.environ.get('API_KEY')
 
 # Dependency
 def get_db():
@@ -37,8 +39,8 @@ def validate_url(url : str):
 
 
 def google_api_call(placeid:str, photoref:str):
-        KEY = '***REMOVED***'
         maxwidth = 1600
+        print("KEY",KEY)
         google_photos_url = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth={maxwidth}&photoreference={photoref}&key={key}'.format(maxwidth=maxwidth, key=KEY, photoref=photoref)
         response = requests.get(google_photos_url, allow_redirects=False)
         return response.headers.get('Location', None) 
@@ -52,8 +54,10 @@ async def insert_db(placeid:str, photoref:str):
         if new_place:
             return redirect_url
         else:
+            print("111111111")
             return False  
     else:
+        print("22222222")
         return False
 
 @app.get("/images/custom")
