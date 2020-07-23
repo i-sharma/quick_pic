@@ -79,48 +79,64 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', city:str = '
     if placeid == '' and photoref == '':
         return {
             'status': 'INVALID_QUERY',
-            'message': 'please check if the fields placeid and photoref are both empty or you may have misspelled the names of query parameters in your request' ,
-            'example_correct_request': 'https://easytrips-custom-images.herokuapp.com/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>'
+            'response': {
+                'message': 'please check if the fields placeid and photoref are both empty or you may have misspelled the names of query parameters in your request' ,
+                'example_correct_request': 'https://easytrips-custom-images.herokuapp.com/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>'
+            }    
         }
     elif placeid == '':
         return {
             'status': 'INVALID_QUERY',
-            'message': 'please check if the field placeid  is empty or you may have misspelled the name of this field in your request' ,
-            'example_correct_request': 'https://easytrips-custom-images.herokuapp.com/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>'
+            'response': {
+                'message': 'please check if the field placeid is empty or you may have misspelled the name of this field in your request' ,
+                'example_correct_request': 'https://easytrips-custom-images.herokuapp.com/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>'
+            }  
+            
         }
     elif photoref == '':
         return {
             'status': 'INVALID_QUERY',
-            'message': 'please check if the field photoref field is empty or you may have misspelled the name of this field in your request' ,
-            'example_correct_request': 'https://easytrips-custom-images.herokuapp.com/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>'
+            'response': {
+                'message': 'please check if the field photoref field is empty or you may have misspelled the name of this field in your request' ,
+                'example_correct_request': 'https://easytrips-custom-images.herokuapp.com/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>'    
+            }
+            
         }
     db_place = await models.CustomImages.get(placeid=placeid)
     if db_place:
         if validate_url(db_place['photo_url']):
             return {
                 'status' : 'SUCCESS', 
-                'action_taken': 'FOUND',
-                'placeid' : db_place['placeid'],
-                'photoref' : db_place['photoref'],
-                'image_url' : db_place['photo_url'],
-                'n_requests' : db_place['n_requests'] + 1,
-                'city': db_place['city']
+                'response': {
+                    'action_taken': 'FOUND',
+                    'placeid' : db_place['placeid'],
+                    'photoref' : db_place['photoref'],
+                    'image_url' : db_place['photo_url'],
+                    'n_requests' : db_place['n_requests'] + 1,
+                    'city': db_place['city']
+                }
+                
             }
         else :
             redirect_url = await update_db_photo_url(placeid, photoref, db_place['n_requests'])
             if redirect_url:
                 return {
                     'status' : 'SUCCESS', 
-                    'action_taken': 'UPDATED',
-                    'placeid': placeid,
-                    'image_url': redirect_url,
-                    'n_requests' : db_place['n_requests'] + 1,
-                    'photoref' : photoref,
-                    'city': db_place['city']
+                    'response': {
+                        'action_taken': 'UPDATED',
+                        'placeid': placeid,
+                        'image_url': redirect_url,
+                        'n_requests' : db_place['n_requests'] + 1,
+                        'photoref' : photoref,
+                        'city': db_place['city']
+                    }
+                    
                 }
             return {
                     'status': 'FAILURE',
-                    'message' : 'Wrong photoref. Please check.'
+                    'response': {
+                        'message' : 'Wrong photoref. Please check.'
+                    }
                 }  
     else:
         # insert_db()
@@ -128,15 +144,21 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', city:str = '
         if redirect_url:
             return {
                     'status': 'SUCCESS', 
-                    'action_taken': 'CREATED',
-                    'placeid': placeid,
-                    'image_url': redirect_url,
-                    'n_requests' : 1,
-                    'photoref' : photoref,
-                    'city': city
+                    'response': {
+                        'action_taken': 'CREATED',
+                        'placeid': placeid,
+                        'image_url': redirect_url,
+                        'n_requests' : 1,
+                        'photoref' : photoref,
+                        'city': city
+                    }
+                    
                 }
         return {
                 'status': 'FAILURE',
-                'message' : 'Wrong photoref. Please check.'
+                'response': {
+                    'message' : 'Wrong photoref. Please check.'
+                }
+                
             }     
     
