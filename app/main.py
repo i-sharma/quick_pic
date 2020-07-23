@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 from .database import SQLALCHEMY_DATABASE_URL,db
-
+import requests
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -28,7 +28,33 @@ async def shutdown():
     await db.disconnect()
 
 
+def validate_url(url : str):
+    r = requests.get(url, allow_redirects=False)
+    cont_type = r.headers.get('Content-Type',None)
+    if cont_type:
+        if cont_type.split('/')[0] == 'image':   return True
+    return False
 
+
+def google_api_call(placeid:str, photoref:str):
+        KEY = '***REMOVED***'
+        maxwidth = 1600
+        google_photos_url = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth={maxwidth}&photoreference={photoref}&key={key}'.format(maxwidth=maxwidth, key=KEY, photoref=photoref)
+        response = requests.get(google_photos_url, allow_redirects=False)
+        return response.headers.get('Location', None) 
+           
+async def insert_db(placeid:str, photoref:str):
+    redirect_url = google_api_call(placeid, photoref)
+    if redirect_url:
+        new_place = await models.CustomImages.create(placeid=placeid, photoref=photoref,
+        photo_url = redirect_url)
+        # print("we are here", new_place)
+        if new_place:
+            return redirect_url
+        else:
+            return False  
+    else:
+        return False
 
 @app.get("/images/custom")
 async def get_custom_image_url(placeid:str = '', photoref:str = '', db: Session = Depends(get_db)):
@@ -47,39 +73,66 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', db: Session 
             'status': 'INVALID_QUERY',
             'message': 'please check if the field photoref field is empty or you may have misspelled the name of this field in your request' 
         }
-
     db_place = await models.CustomImages.get(placeid=placeid)
     if db_place:
-        return {
-        'status' : 'FOUND', 
-        'placeid' : db_place.placeid,
-        'image_url' : db_place.photo_url
-    }
-    else:
-        image_url = f'https://async_version.com/{placeid}.jpg'
-        new_place = await models.CustomImages.create(placeid=placeid, photoref=photoref,
-        photo_url = image_url)
-        if photo_url:
+        if validate_url(db_place['photo_url']):
             return {
-                'status': 'CREATED',
-                'placeid': new_place,
-                'photo_url': image_url
-            }
-    # db_user = crud.get_image_url(db,placeid=placeid)
-    # print(db_user)
-    # if db_user:
-    #     return {
-    #     'status' : 'FOUND', 
-    #     'placeid' : db_user.placeid,
-    #     'image_url' : db_user.photo_url
-    # }
-    # else:
-    #     image_url = f'https://domainname.com/{placeid}.jpg'
-    #     place = crud.create_place(db=db, placeid=placeid,photoref=photoref,photo_url=image_url)   
-    #     if place:
-    #         return {
-    #             'status' : 'CREATED', 
-    #             'placeid' : place.placeid,
-    #             'image_url' : place.photo_url
-    #         }
+            'status' : 'FOUND', 
+            'placeid' : db_place['placeid'],
+            'photoref' : db_place['photoref'],
+            'image_url' : db_place['photo_url'],
+            'n_requests' : db_place['n_requests']
+        }
+        else :
+            print("in here my lord")
+            # redirect_url = google_api_call(placeid, photoref)
+            if insert_db():
+                return {
+                        'status': 'CREATED',
+                        'placeid': new_place,
+                        'image_url': redirect_url,
+                        'n_requests' : 1,
+                        'photoref' : photoref
+                    }
+            return {
+                    'status': 'FAILURE',
+                    'message' : 'Wrong photoref. Please check.'
+                }  
+    else:
+        # insert_db()
+        redirect_url = await insert_db(placeid, photoref)
+        if redirect_url:
+            return {
+                    'status': 'CREATED',
+                    'placeid': placeid,
+                    'image_url': redirect_url,
+                    'n_requests' : 1,
+                    'photoref' : photoref
+                }
+        return {
+                'status': 'FAILURE',
+                'message' : 'Wrong photoref. Please check.'
+            }          
+        # if redirect_url:
+        #     new_place = await models.CustomImages.create(placeid=placeid, photoref=photoref,
+        #     photo_url = redirect_url)
+        #     # print("we are here", new_place)
+        #     if new_place:
+        #         return {
+        #             'status': 'CREATED',
+        #             'placeid': new_place,
+        #             'image_url': redirect_url,
+        #             'n_requests' : 1,
+        #             'photoref' : photoref
+        #         }
+        #     else:
+        #         return {
+        #             'status': 'FAILURE',
+        #             'message' : 'Wrong placeid or photoref. Please check.'
+        #         }  
+        # else:
+        #     return {
+        #         'status': 'FAILURE',
+        #         'message' : 'Wrong photoref. Please check.'
+        #     }  
     

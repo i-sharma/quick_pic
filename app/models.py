@@ -19,12 +19,20 @@ class CustomImages:
     async def get(cls, placeid):
         query = custom_images.select().where(custom_images.c.placeid == placeid)
         place = await db.fetch_one(query)
-        return place
-
+        if place:
+            place = dict(place)
+            query = custom_images.update()
+            values = {'n_requests': place['n_requests'] + 1}
+            await db.execute(query=query, values=values)    
+        return place 
+        
     @classmethod
     async def create(cls, **place):
         place['n_requests'] = 1
         place['update_timestamp'] = datetime.now()
-        query = users.insert().values(**place)
-        user_id = await db.execute(query)
-        return user_id
+        query = custom_images.insert().values(**place)
+        try:
+            user_id = await db.execute(query)
+            return True
+        except: 
+            return False
