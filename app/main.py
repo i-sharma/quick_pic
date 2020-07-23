@@ -127,7 +127,8 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', city:str = '
         redirect_url = await insert_db(placeid, photoref, city)
         if redirect_url:
             return {
-                    'status': 'CREATED',
+                    'status': 'SUCCESS', 
+                    'action_taken': 'CREATED',
                     'placeid': placeid,
                     'image_url': redirect_url,
                     'n_requests' : 1,
