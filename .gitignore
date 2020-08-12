@@ -5,3 +5,5 @@
 /tutorial/
 Dockerfile
 /app/__pycache__/
+*.jar
+/passwords.txt
