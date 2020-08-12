@@ -35,10 +35,10 @@ The following command will fire up an application server:
     - ```GET```
 - ##### URL Params
     - ###### Required
-        - ```placeid-[string]``` PlaceId of the place that the photo corresponds to
-        - ```photoref-[string]``` Photo Reference of the photo you want to fetch
+        - ```placeid=[string]``` PlaceId of the place that the photo corresponds to
+        - ```photoref=[string]``` Photo Reference of the photo you want to fetch
     - ###### Optional
-        - ```city-[string]``` City where the place resides
+        - ```city=[string]``` City where the place resides
 - ##### Success Response:
 ```
     {
