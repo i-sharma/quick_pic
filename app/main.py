@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 # from sqlalchemy import MetaData
-from . import crud, models, schemas
+from . import models
 from .database import SessionLocal, engine
 from .database import SQLALCHEMY_DATABASE_URL,db
 import requests
@@ -76,7 +76,7 @@ async def update_db_photo_url(placeid:str, photoref:str, n_req : int = None):
 
 @app.get("/images/custom")
 async def get_custom_image_url(placeid:str = '', photoref:str = '', city:str = '',db: Session = Depends(get_db)):
-    if placeid == '' and photoref == '':
+    if placeid == '' and photoref == '': 
         return {
             'status': 'INVALID_QUERY',
             'response': {
@@ -135,7 +135,7 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', city:str = '
             return {
                     'status': 'FAILURE',
                     'response': {
-                        'message' : 'Wrong photoref. Please check.'
+                        'message' : 'Wrong photoref or placeid. Please check.'
                     }
                 }  
     else:
@@ -157,7 +157,7 @@ async def get_custom_image_url(placeid:str = '', photoref:str = '', city:str = '
         return {
                 'status': 'FAILURE',
                 'response': {
-                    'message' : 'Wrong photoref. Please check.'
+                    'message' : 'Wrong photoref or placeid. Please check.'
                 }
                 
             }     

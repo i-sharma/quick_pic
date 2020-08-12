@@ -5,7 +5,6 @@ from databases import Database
 import sqlalchemy
 import os
 
-# SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
 SQLALCHEMY_DATABASE_URL = os.environ.get('DATABASE_URl')
 db = Database(SQLALCHEMY_DATABASE_URL)
 metadata = sqlalchemy.MetaData()
