@@ -66,3 +66,7 @@ The following command will fire up an application server:
 
 - ##### Sample Call
     - ```curl -XGET 'root_url/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>&city=<CITY>'```
+    
+#### License
+
+Quick Pic is [MIT licensed](https://github.com/ishans996/quick_pic/blob/master/LICENSE.md).
