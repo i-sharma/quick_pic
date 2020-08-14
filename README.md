@@ -66,6 +66,13 @@ The following command will fire up an application server:
 
 - ##### Sample Call
     - ```curl -XGET 'root_url/images/custom?placeid=<PLACEID>&photoref=<PHOTOREF>&city=<CITY>'```
+
+#### Maintainers
+
+This project is mantained by:
+- [Eeshan Deo](https://github.com/eeshan-d)
+- [Ishan Sharma](https://github.com/ishans996)
+
     
 #### License
 
